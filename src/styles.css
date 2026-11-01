@@ -1,0 +1,33 @@
+:root{--bg:#f6f3ee;--card:#fff;--ink:#1f1d1a;--muted:#6f6a62;--line:#d9d3c9;--accent:#2f6f5e;--ok:#2e8b57;--bad:#c4473a;--target:#f0c75e;--black:#22201d}
+@media (prefers-color-scheme:dark){:root{--bg:#161513;--card:#201f1c;--ink:#ece8e1;--muted:#9c958a;--line:#3a3732;--accent:#6fbfa6;--black:#0c0b0a}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+.app{max-width:900px;margin:0 auto;padding:16px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px}
+h1{font-size:1.4rem;margin:0;cursor:pointer}h2{margin:.2em 0}h3{margin:1.2em 0 .4em;font-size:1rem;color:var(--accent)}
+button{font:inherit;padding:10px 16px;border-radius:10px;border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer;min-height:44px}
+button.ghost{background:transparent;color:var(--accent)}
+.pill{border-radius:999px;background:transparent;color:var(--muted);border-color:var(--line)}.pill.on{color:var(--ok);border-color:var(--ok)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:16px}
+.muted{color:var(--muted)}.small{font-size:.85rem}.warn{color:var(--bad)}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.between{justify-content:space-between}
+.seg{display:flex}.seg button{border-radius:0;background:transparent;color:var(--accent)}.seg button:first-child{border-radius:10px 0 0 10px}.seg button:last-child{border-radius:0 10px 10px 0}.seg button.active{background:var(--accent);color:#fff}
+.week{border-top:1px solid var(--line);padding:8px 0}.week summary{cursor:pointer;display:flex;justify-content:space-between;font-weight:600}
+.badge{font-size:.8rem;background:var(--bg);padding:2px 8px;border-radius:999px}
+.session{display:block;width:100%;text-align:left;margin:6px 0;background:transparent;color:var(--ink);border-color:var(--line)}.session.done{color:var(--ok);border-color:var(--ok)}
+.songs{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.song{display:flex;flex-direction:column;align-items:flex-start;background:transparent;color:var(--ink);border-color:var(--line);text-align:left}
+.block-item{display:flex;gap:14px;padding:12px 0;border-top:1px solid var(--line)}.block-item p{margin:0 0 8px}.min{font-weight:700;color:var(--accent);min-width:36px}
+.steps li{margin-bottom:6px}.block{display:block;margin:12px 0}select{font:inherit;padding:8px;margin-left:8px;border-radius:8px}
+.practice{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px}
+.staff{width:100%;height:auto;margin:8px 0}.staffline{stroke:var(--muted);stroke-width:1}.clef{font-size:52px;fill:var(--ink)}
+.head{fill:var(--ink)}.head.open{fill:var(--card);stroke:var(--ink);stroke-width:2}.stem,.flag{stroke:var(--ink);stroke-width:1.5;fill:none}.dot,.acc{fill:var(--ink)}
+.note.ok .head{fill:var(--ok)}.note.ok .head.open{stroke:var(--ok);fill:var(--card)}.note.bad .head{fill:var(--bad)}.note.bad .head.open{stroke:var(--bad);fill:var(--card)}
+.cursor{fill:var(--target);opacity:.25}.lyric{font-size:14px;text-anchor:middle;fill:var(--ink)}.fingertext{font-size:12px;text-anchor:middle;fill:var(--muted)}
+.status{margin:8px 0}.check{display:flex;gap:6px;align-items:center;font-size:.9rem}
+.result{text-align:center;padding:12px}.result strong{font-size:1.4rem}
+.keyboard{position:relative;height:150px;margin:12px 0;user-select:none;touch-action:none}
+.key{position:absolute;top:0;padding:0;border-radius:0 0 6px 6px;min-height:0;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;transition:background .08s}
+.key.white{height:100%;background:#fff;border:1px solid #bbb;color:#555;z-index:1}.key.black{height:62%;background:var(--black);border:1px solid #000;z-index:2}
+.key.target{background:var(--target)!important}.key.ok,.key.on{background:var(--ok)!important}.key.bad{background:var(--bad)!important}
+.label{font-size:11px;padding-bottom:4px}.finger{font-weight:700;color:#222;padding-bottom:20px}
+label input[type=range]{vertical-align:middle;margin-left:8px}
