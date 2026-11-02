@@ -1,14 +1,18 @@
 import { useEffect, useState } from 'react';
-import { SONGS, type Song } from './songs';
-import { WEEKS, type Session } from './plan';
-import { Practice } from './components/Practice';
+import { SONGS, songById, type Song } from './songs';
+import { WEEKS, MONTHS, type Session, type Block } from './plan';
+import { Practice, starsFor, type PracticeOpts } from './components/Practice';
 import { initMidi, midiSupported, getAccess, emit, onMidi } from './midi';
 import { setMidiOut, playNote } from './audio';
 import { store } from './store';
 import { noteName } from './components/Keyboard';
 
 const KEYMAP: Record<string, number> = { a: 60, w: 61, s: 62, e: 63, d: 64, f: 65, t: 66, g: 67, y: 68, z: 68, h: 69, u: 70, j: 71, k: 72 };
-type View = { kind: 'home' } | { kind: 'song'; song: Song } | { kind: 'session'; s: Session } | { kind: 'midi' };
+const optsOf = (b: Block): PracticeOpts => ({ mode: b.mode, hand: b.hand, tempo: b.tempo, transpose: b.transpose });
+const label = (b: Block) => [({ wait: 'Warten', play: 'Mitspielen', listen: 'Zuhören' } as const)[b.mode ?? 'wait'],
+  b.hand && b.hand !== 'both' ? (b.hand === 'right' ? 'rechte Hand' : 'linke Hand') : '', b.tempo ? `${b.tempo} %` : '',
+  b.transpose ? `${b.transpose > 0 ? '+' : ''}${b.transpose} HT` : ''].filter(Boolean).join(', ');
+type View = { kind: 'home' } | { kind: 'song'; song: Song; opts?: PracticeOpts; back?: View } | { kind: 'session'; s: Session } | { kind: 'midi' };
 
 export default function App() {
   const [view, setView] = useState<View>({ kind: 'home' });
@@ -37,6 +41,9 @@ export default function App() {
 
   const toggleDone = (id: string) => setData(store.update(d => { d.done[id] = !d.done[id]; }));
   const connected = devices.ins.length > 0;
+  const allSessions = WEEKS.flatMap(w => w.sessions);
+  const doneCount = allSessions.filter(x => data.done[x.id]).length;
+  const nextSession = allSessions.find(x => !data.done[x.id]);
 
   return (
     <div className="app">
@@ -48,7 +55,7 @@ export default function App() {
       </header>
 
       <main>
-        {view.kind === 'song' && <Practice song={view.song} onBack={() => { setData(store.get()); setView({ kind: 'home' }); }} />}
+        {view.kind === 'song' && <Practice key={view.song.id + JSON.stringify(view.opts ?? {})} song={view.song} opts={view.opts} onBack={() => { setData(store.get()); setView(view.back ?? { kind: 'home' }); }} />}
 
         {view.kind === 'midi' && (
           <section className="card">
@@ -75,62 +82,75 @@ export default function App() {
           </section>
         )}
 
-        {view.kind === 'session' && (
+        {view.kind === 'session' && (() => { const sv = view; return (
           <section className="card">
             <button className="ghost" onClick={() => setView({ kind: 'home' })}>← Zurück</button>
-            <h2>{view.s.title}</h2>
-            <p className="muted">60 Minuten, in vier Blöcken</p>
-            {view.s.blocks.map((b, k) => {
-              const song = SONGS.find(s => s.id === b.songId);
+            <h2>{sv.s.title}</h2>
+            <p className="muted">60 Minuten · Aufwärmen → Lernen → Üben → Singen</p>
+            {sv.s.blocks.map((b, k) => {
+              const song = b.song ? songById(b.song) : undefined;
               return (
                 <div className="block-item" key={k}>
-                  <span className="min">{b.min}′</span>
-                  <div><p>{b.text}</p>{song && <button onClick={() => setView({ kind: 'song', song })}>Üben: {song.title}</button>}</div>
+                  <span className={'kind k' + k}>{b.kind}<br /><small>{b.min} Min</small></span>
+                  <div><p>{b.text}</p>{song && <button onClick={() => setView({ kind: 'song', song, opts: optsOf(b), back: sv })}>▶ {song.title} · {label(b)}</button>}</div>
                 </div>
               );
             })}
-            <button className={data.done[view.s.id] ? 'ghost' : ''} onClick={() => toggleDone(view.s.id)}>
-              {data.done[view.s.id] ? '✓ Erledigt (rückgängig)' : 'Einheit als erledigt markieren'}
+            <button className={data.done[sv.s.id] ? 'ghost' : ''} onClick={() => toggleDone(sv.s.id)}>
+              {data.done[sv.s.id] ? '✓ Erledigt (rückgängig)' : 'Einheit als erledigt markieren'}
             </button>
-          </section>
-        )}
+          </section>); })()}
 
         {view.kind === 'home' && <>
+          <section className="card hero">
+            <div>
+              <h2>Weiter üben</h2>
+              <p className="muted">{doneCount} von {allSessions.length} Einheiten · {doneCount} h von {allSessions.length} h</p>
+              <div className="bar"><span style={{ width: `${doneCount / allSessions.length * 100}%` }} /></div>
+            </div>
+            {nextSession ? <button onClick={() => setView({ kind: 'session', s: nextSession })}>▶ {nextSession.title.replace(/^Einheit \d – /, '')} (Woche {nextSession.id.match(/w(\d+)/)![1]})</button> : <strong>🎉 Plan abgeschlossen!</strong>}
+          </section>
+
           <section className="card">
             <h2>Dein 12-Wochen-Plan</h2>
             <p className="muted">3 Einheiten × 60 Minuten pro Woche</p>
             {[1, 2, 3].map(mo => (
               <div key={mo}>
-                <h3>Monat {mo} – {['Grundlagen', 'Beide Hände', 'Liedbegleitung'][mo - 1]}</h3>
-                {WEEKS.filter(w => w.month === mo).map(w => (
-                  <details key={w.n} open={w.n === 1} className="week">
-                    <summary>
-                      <span>Woche {w.n}: {w.title}</span>
-                      {w.sessions && <span className="badge">{w.sessions.filter(s => data.done[s.id]).length}/{w.sessions.length}</span>}
-                    </summary>
-                    <p className="muted">Ziel: {w.goal}</p>
-                    {w.sessions ? w.sessions.map(s => (
-                      <button key={s.id} className={'session ' + (data.done[s.id] ? 'done' : '')} onClick={() => setView({ kind: 'session', s })}>
-                        {data.done[s.id] ? '✓ ' : ''}{s.title}
-                      </button>
-                    )) : <p className="muted small">Einheiten folgen im nächsten Ausbauschritt.</p>}
-                  </details>
-                ))}
+                <h3>Monat {mo} – {MONTHS[mo - 1]}</h3>
+                {WEEKS.filter(w => w.month === mo).map(w => {
+                  const d = w.sessions.filter(x => data.done[x.id]).length;
+                  return (
+                    <details key={w.n} open={nextSession?.id.startsWith(`w${w.n}s`)} className="week">
+                      <summary><span>Woche {w.n}: {w.title}</span><span className={'badge ' + (d === 3 ? 'full' : '')}>{d}/3</span></summary>
+                      <p className="muted">🎯 Wochenziel: {w.goal}</p>
+                      {w.sessions.map(x => (
+                        <button key={x.id} className={'session ' + (data.done[x.id] ? 'done' : '')} onClick={() => setView({ kind: 'session', s: x })}>
+                          {data.done[x.id] ? '✓ ' : ''}{x.title}
+                        </button>
+                      ))}
+                    </details>
+                  );
+                })}
               </div>
             ))}
           </section>
 
-          <section className="card">
-            <h2>Lieder</h2>
-            <div className="songs">
-              {SONGS.map(s => (
-                <button key={s.id} className="song" onClick={() => setView({ kind: 'song', song: s })}>
-                  <strong>{s.title}</strong>
-                  <span className="muted small">Stufe {s.level}{data.best[s.id] !== undefined ? ` · Bestwert ${data.best[s.id]} %` : ''}</span>
-                </button>
-              ))}
-            </div>
-          </section>
+          {([['lied', 'Lieder'], ['uebung', 'Übungen & Akkorde'], ['blatt', 'Blattspiel-Training']] as const).map(([cat, t]) => (
+            <section className="card" key={cat}>
+              <h2>{t}</h2>
+              <div className="songs">
+                {SONGS.filter(s => s.cat === cat).map(s => {
+                  const b = data.best[s.id];
+                  return (
+                    <button key={s.id} className="song" onClick={() => setView({ kind: 'song', song: s })}>
+                      <strong>{s.title}</strong>
+                      <span className="muted small">Stufe {s.level}{b !== undefined ? ` · ${'★'.repeat(starsFor(b))}${'☆'.repeat(3 - starsFor(b))} ${b} %` : ''}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+          ))}
         </>}
       </main>
     </div>

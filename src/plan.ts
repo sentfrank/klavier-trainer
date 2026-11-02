@@ -1,37 +1,222 @@
-export type Session = { id: string; title: string; blocks: { min: number; text: string; songId?: string }[] };
-export type Week = { n: number; month: number; title: string; goal: string; sessions?: Session[] };
+import type { Mode, Hand } from './components/Practice';
+export type Kind = 'Aufwärmen' | 'Lernen' | 'Üben' | 'Singen';
+export type Block = { kind: Kind; min: number; text: string; song?: string; mode?: Mode; hand?: Hand; tempo?: number; transpose?: number };
+export type Session = { id: string; title: string; blocks: Block[] };
+export type Week = { n: number; month: number; title: string; goal: string; sessions: Session[] };
+
+type O = Omit<Block, 'kind' | 'min' | 'text' | 'song'>;
+const A = (text: string, song?: string, o: O = {}): Block => ({ kind: 'Aufwärmen', min: 10, text, song, ...o });
+const L = (text: string, song?: string, o: O = {}): Block => ({ kind: 'Lernen', min: 10, text, song, ...o });
+const U = (text: string, song?: string, o: O = {}): Block => ({ kind: 'Üben', min: 30, text, song, ...o });
+const S = (text: string, song?: string, o: O = {}): Block => ({ kind: 'Singen', min: 10, text, song, ...o });
+const W = (n: number, month: number, title: string, goal: string, s: [string, Block[]][]): Week =>
+  ({ n, month, title, goal, sessions: s.map(([t, b], k) => ({ id: `w${n}s${k + 1}`, title: `Einheit ${k + 1} – ${t}`, blocks: b })) });
+
+export const MONTHS = ['Grundlagen', 'Beide Hände', 'Liedbegleitung'];
 
 export const WEEKS: Week[] = [
-  { n: 1, month: 1, title: 'Orientierung & Fünftonlage C', goal: 'Ode an die Freude im Warten-Modus mit ≥ 90 % Treffern',
-    sessions: [
-      { id: 'w1s1', title: 'Einheit 1 – Die Tastatur', blocks: [
-        { min: 10, text: 'Aufwärmen: Finger nummerieren (Daumen = 1). Alle C auf dem E-Piano finden – C liegt links vor den zwei schwarzen Tasten.' },
-        { min: 10, text: 'Theorie: Notennamen C bis G, Notenlinien im Violinschlüssel. Fünftonlage hören und mitsingen.', songId: 'fuenfton' },
-        { min: 30, text: 'Stück: Fünftonlage im Warten-Modus, dann Alle meine Entchen.', songId: 'entchen' },
-        { min: 10, text: 'Singen: Entchen mitspielen und laut mitsingen. Tempo ruhig auf 70 % stellen.', songId: 'entchen' },
-      ]},
-      { id: 'w1s2', title: 'Einheit 2 – Erste Lieder', blocks: [
-        { min: 10, text: 'Aufwärmen: Fünftonlage C auf und ab, gleichmäßig, 3×.', songId: 'fuenfton' },
-        { min: 10, text: 'Theorie: Viertel, Halbe, Ganze – mitklatschen und zählen.' },
-        { min: 30, text: 'Stück: Hänschen klein – erst Zuhören, dann Warten-Modus.', songId: 'haenschen' },
-        { min: 10, text: 'Singen: Hänschen klein spielen und singen.', songId: 'haenschen' },
-      ]},
-      { id: 'w1s3', title: 'Einheit 3 – Ode an die Freude', blocks: [
-        { min: 10, text: 'Aufwärmen: Fünftonlage + Entchen zur Wiederholung.', songId: 'entchen' },
-        { min: 10, text: 'Theorie: Punktierte Viertel (Takt 4 der Ode).' },
-        { min: 30, text: 'Stück: Ode an die Freude, erst Zeile 1, dann komplett.', songId: 'ode' },
-        { min: 10, text: 'Singen: Ode spielen und den Schiller-Text singen.', songId: 'ode' },
-      ]},
-    ]},
-  { n: 2, month: 1, title: 'Violinschlüssel sicher lesen', goal: 'Neue Lieder vom Blatt in C-Lage' },
-  { n: 3, month: 1, title: 'Linke Hand: C, F, G als ganze Noten', goal: 'Akkordwechsel C–F–G ohne Pause' },
-  { n: 4, month: 1, title: 'Melodie + Grundakkord', goal: 'Ode mit linker Hand C/G begleiten' },
-  { n: 5, month: 2, title: 'Bassschlüssel', goal: 'Basstöne C bis G lesen' },
-  { n: 6, month: 2, title: 'Hände zusammen', goal: 'Einfache Stücke beidhändig im Warten-Modus' },
-  { n: 7, month: 2, title: 'Am, Dm, Em & Umkehrungen', goal: 'Sechs Akkorde flüssig greifen' },
-  { n: 8, month: 2, title: 'Begleitmuster & Amazing Grace', goal: 'Gebrochene Akkorde zum eigenen Gesang' },
-  { n: 9, month: 3, title: 'Pop-Pattern I–V–vi–IV', goal: 'Vier-Akkord-Folge im Rhythmus' },
-  { n: 10, month: 3, title: 'Lead Sheets spielen', goal: 'Melodie + Akkordsymbole selbst kombinieren' },
-  { n: 11, month: 3, title: 'Transponieren & Für Elise (Anfang)', goal: 'Lied in eigene Gesangslage legen' },
-  { n: 12, month: 3, title: 'Abschluss-Stück', goal: 'Ein Lied komplett spielen und singen' },
+  W(1, 1, 'Orientierung & Fünftonlage C', 'Ode an die Freude im Warten-Modus mit ≥ 90 %', [
+    ['Die Tastatur', [
+      A('Finger nummerieren (Daumen = 1). Alle C auf dem E-Piano finden – C liegt links vor den zwei schwarzen Tasten.'),
+      L('Notennamen C bis G und ihre Plätze im Violinschlüssel. Erst zuhören, dann im Warten-Modus spielen.', 'fuenfton'),
+      U('Alle meine Entchen: erst „Zuhören“, dann Warten-Modus. Ziel: ⭐⭐', 'entchen'),
+      S('Entchen spielen und laut mitsingen.', 'entchen', { tempo: 80 })]],
+    ['Erste Lieder', [
+      A('Fünftonlage auf und ab, gleichmäßig, 3×.', 'fuenfton'),
+      L('Viertel, Halbe, Ganze: Halbe Noten sind hohl mit Hals, ganze Noten hohl ohne Hals. Klatsche Hänschen klein und zähle laut mit.'),
+      U('Hänschen klein – erst hören, dann Warten-Modus.', 'haenschen'),
+      S('Hänschen klein spielen und singen.', 'haenschen')]],
+    ['Ode an die Freude', [
+      A('Entchen zur Wiederholung.', 'entchen'),
+      L('Punktierte Viertel: der Punkt verlängert um die Hälfte (Takt 4 der Ode: „E – D D“).'),
+      U('Ode an die Freude: erst Zeile 1, dann komplett. Wochenziel ≥ 90 %.', 'ode'),
+      S('Ode spielen und den Schiller-Text singen.', 'ode')]],
+  ]),
+  W(2, 1, 'Noten lesen & Rhythmus', 'Blattspiel C-Oktave ≥ 80 %, Twinkle im Mitspielen-Modus ⭐⭐', [
+    ['Linien und Zwischenräume', [
+      A('Blattspiel-Training C bis G: lies die Note, sprich den Namen, spiele sie.', 'blatt-c5'),
+      L('Violinschlüssel-Linien von unten: E – G – H – D – F („Es Geht Hurtig Durch Fleiß“). Zwischenräume: F – A – C – E. Das mittlere C hat eine eigene Hilfslinie.'),
+      U('Twinkle Twinkle: neu ist das A – dein 5. Finger streckt sich vom G zum A. Erst Zuhören, dann Warten-Modus.', 'twinkle'),
+      S('Twinkle spielen und singen. Wenn es hakt: Tempo auf 70 %.', 'twinkle', { tempo: 70 })]],
+    ['Im Takt bleiben', [
+      A('Entchen jetzt im Mitspielen-Modus: die App läuft weiter und bewertet dein Timing.', 'entchen', { mode: 'play', tempo: 70 }),
+      L('Takt und Taktstriche: Im 4/4-Takt zählst du „1 – 2 – 3 – 4“. Das Metronom betont die 1. Wichtig: bei Fehlern nicht anhalten, sondern weiterspielen – wie in einer Band.'),
+      U('When the Saints: Warten-Modus, dann Mitspielen bei 70 %. Die langen Noten (4 Schläge) bewusst aushalten.', 'saints', { mode: 'play', tempo: 70 }),
+      S('Saints spielen und singen – kräftig und fröhlich!', 'saints', { tempo: 80 })]],
+    ['Vom Blatt spielen', [
+      A('Blattspiel C bis G, 3 Durchgänge.', 'blatt-c5'),
+      L('Vom-Blatt-Spiel nach dem Piano-Marvel-Prinzip: 10 Sekunden ansehen, Puls zählen, dann ohne Anhalten spielen. Jetzt die ganze Oktave bis C5.', 'blatt-oktave'),
+      U('Ode an die Freude im Mitspielen-Modus: 70 % → 80 % → 90 %.', 'ode', { mode: 'play', tempo: 80 }),
+      S('Wochenabschluss: Twinkle und Ode spielen und singen.', 'twinkle', { tempo: 90 })]],
+  ]),
+  W(3, 1, 'Linke Hand: C, F, G', 'Akkordwechsel C – F – G ohne Pause (Mitspielen ⭐⭐)', [
+    ['Die linke Hand', [
+      A('Fünftonlage links: kleiner Finger auf C3, Daumen auf G3.', 'lh-uebung'),
+      L('Ein Akkord = drei Töne gleichzeitig. C-Dur: C – E – G mit den Fingern 5 – 3 – 1. Greife ihn 5× hintereinander, Hand locker lassen.'),
+      U('Akkorde C – F – G im Warten-Modus. Trick: beim F bleibt der kleine Finger auf C liegen, nur Finger 2 und 1 rutschen nach oben.', 'lh-akkorde'),
+      S('Akkorde langsam spielen und den tiefsten Ton dazu singen („C – F – G – C“).', 'lh-akkorde', { tempo: 60 })]],
+    ['Akkorde wechseln', [
+      A('Fünftonlage rechts und links nacheinander.', 'lh-uebung', { mode: 'play', tempo: 70 }),
+      L('Warum H-D-G statt G-H-D? Diese Umkehrung liegt nah am C-Akkord – die Hand muss kaum springen. So spielen Profis Liedbegleitung.'),
+      U('Akkorde C – F – G im Mitspielen-Modus bei 60 %, dann 80 %.', 'lh-akkorde', { mode: 'play', tempo: 60 }),
+      S('Zu den Akkorden „Hänschen klein“ summen – passt erstaunlich gut!', 'lh-akkorde', { mode: 'listen' })]],
+    ['Ganze Noten & Begleitung hören', [
+      A('Fünftonlage links im Mitspielen-Modus.', 'lh-uebung', { mode: 'play' }),
+      L('Ganze Note = 4 Schläge. Laut zählen, während der Akkord klingt. Danach: Ode beidhändig zuhören – so wird es nächste Woche klingen.', 'ode-lh', { mode: 'listen' }),
+      U('Akkorde C – F – G bei 100 % im Mitspielen-Modus. Ziel ⭐⭐', 'lh-akkorde', { mode: 'play' }),
+      S('Ode mit der rechten Hand spielen, die App spielt die linke Hand als Begleitung – dazu singen.', 'ode-lh', { hand: 'right' })]],
+  ]),
+  W(4, 1, 'Melodie + Grundton', 'Ode beidhändig im Mitspielen-Modus bei 70 % ⭐⭐', [
+    ['Hände zusammenbringen', [
+      A('Akkorde C – F – G.', 'lh-akkorde'),
+      L('Hände zusammen – die Skoove-Methode: 1. jede Hand einzeln, 2. nur die Stellen, wo beide gleichzeitig spielen, 3. alles langsam. Die linke Hand spielt hier nur zu Taktbeginn.'),
+      U('Ode beidhändig: erst nur linke Hand, dann beide im Warten-Modus.', 'ode-lh', { hand: 'left' }),
+      S('Ode rechts spielen, App begleitet links – singen.', 'ode-lh', { hand: 'right' })]],
+    ['Grundtöne wechseln', [
+      A('Blattspiel C bis C5.', 'blatt-oktave'),
+      L('C, F und G sind die drei wichtigsten Akkorde in C-Dur (Stufe I, IV, V). Mit ihnen kannst du hunderte Lieder begleiten.'),
+      U('Twinkle beidhändig im Warten-Modus. Achte auf den Wechsel zu F3 (Finger 2).', 'twinkle-lh'),
+      S('Twinkle beidhändig spielen und singen.', 'twinkle-lh', { tempo: 70 })]],
+    ['Monatstest', [
+      A('Fünftonlage beidhändig nacheinander.', 'fuenfton', { mode: 'play' }),
+      L('Rückblick Monat 1: Noten C bis C5, Viertel/Halbe/Ganze, Akkorde C-F-G. Schau dir deine Bestwerte in der Liederliste an.'),
+      U('Monatstest: Ode beidhändig im Mitspielen-Modus bei 70 %. Ziel ⭐⭐', 'ode-lh', { mode: 'play', tempo: 70 }),
+      S('Dein Lieblingslied aus Monat 1 spielen und singen.', 'twinkle-lh')]],
+  ]),
+  W(5, 2, 'Bassschlüssel', 'Blattspiel Bassschlüssel ≥ 80 %', [
+    ['Der Bassschlüssel', [
+      A('Fünftonlage links.', 'lh-uebung'),
+      L('Bassschlüssel-Linien von unten: G – H – D – F – A („Grüne Hasen Dürfen Fast Alles“). Zwischenräume: A – C – E – G („Alle Cowboys Essen Gras“). Der Doppelpunkt des Schlüssels umschließt die F-Linie.', 'blatt-bass'),
+      U('Alle meine Entchen mit der linken Hand im Bassschlüssel.', 'lh-melodie'),
+      S('Entchen links spielen und singen (eine Oktave höher singen ist okay).', 'lh-melodie')]],
+    ['Zwei Schlüssel, ein Klavier', [
+      A('Blattspiel Bassschlüssel.', 'blatt-bass'),
+      L('Das mittlere C verbindet beide Systeme: Hilfslinie unter dem Violinschlüssel = Hilfslinie über dem Bassschlüssel. Jetzt Noten aus beiden Schlüsseln gemischt.', 'blatt-beide'),
+      U('Entchen links im Mitspielen-Modus.', 'lh-melodie', { mode: 'play', tempo: 80 }),
+      S('Twinkle rechts, App spielt die Bassbegleitung – singen.', 'twinkle-lh', { hand: 'right' })]],
+    ['Lesetest', [
+      A('Akkorde C – F – G.', 'lh-akkorde', { mode: 'play' }),
+      L('Lesetest: Blattspiel Bassschlüssel, 3 Runden. Ziel ≥ 80 %.', 'blatt-bass'),
+      U('Ode beidhändig im Mitspielen-Modus bei 80 %.', 'ode-lh', { mode: 'play', tempo: 80 }),
+      S('Ode beidhändig spielen und singen.', 'ode-lh', { tempo: 70 })]],
+  ]),
+  W(6, 2, 'Hände zusammen', 'Saints beidhändig im Mitspielen-Modus ⭐⭐', [
+    ['Parallel spielen', [
+      A('Hände zusammen parallel – langsam.', 'parallel'),
+      L('Spiegelfingersatz: rechts beginnt der Daumen, links der kleine Finger. Gehirn-Training: beide Hände machen dieselbe Bewegung mit verschiedenen Fingern.'),
+      U('When the Saints beidhändig: erst links allein, dann beide im Warten-Modus.', 'saints-lh', { hand: 'left' }),
+      S('Saints rechts spielen, App begleitet – singen.', 'saints-lh', { hand: 'right' })]],
+    ['Lange Noten aushalten', [
+      A('Parallel im Mitspielen-Modus.', 'parallel', { mode: 'play' }),
+      L('Während die rechte Hand eine lange Note hält, darf die linke Hand nicht „mitwarten“. Laut zählen hilft: „1 – 2 – 3 – 4“.'),
+      U('Saints beidhändig im Mitspielen-Modus bei 60 %.', 'saints-lh', { mode: 'play', tempo: 60 }),
+      S('Saints beidhändig spielen und singen.', 'saints-lh', { tempo: 70 })]],
+    ['Fehler gezielt üben', [
+      A('Blattspiel beide Schlüssel.', 'blatt-beide'),
+      L('Fehlerstrategie: Schau, wo die roten Noten waren. Übe genau diese Stelle 5× im Warten-Modus, erst dann wieder das ganze Stück.'),
+      U('Saints und Twinkle beidhändig im Mitspielen-Modus. Ziel ⭐⭐', 'saints-lh', { mode: 'play', tempo: 80 }),
+      S('Wunschlied aus Monat 1–2 spielen und singen.', 'twinkle-lh')]],
+  ]),
+  W(7, 2, 'Moll-Akkorde', 'Kanon-Akkordfolge beidhändig im Warten-Modus ≥ 90 %', [
+    ['Dur und Moll', [
+      A('Akkorde C – F – G.', 'lh-akkorde', { mode: 'play' }),
+      L('Dur klingt hell, Moll weicher. Der Unterschied ist nur ein Halbton im mittleren Ton (Terz). Hör dir die Moll-Akkorde zuerst an.', 'akkorde-moll', { mode: 'listen' }),
+      U('Moll-Akkorde Am, Dm, Em im Warten-Modus.', 'akkorde-moll'),
+      S('Zu jedem Akkord den tiefsten Ton singen – hörst du Dur oder Moll?', 'akkorde-moll', { tempo: 60 })]],
+    ['Umkehrungen', [
+      A('Moll-Akkorde im Mitspielen-Modus.', 'akkorde-moll', { mode: 'play', tempo: 60 }),
+      L('Am wird hier als C-E-A gegriffen: dieselben Töne wie A-C-E, nur anders geschichtet. So bleibt die Hand in der Nähe des C-Akkords.'),
+      U('Kanon-Akkordfolge: erst nur rechte Hand (Dreiklänge), dann linke Hand (Grundtöne).', 'kanon', { hand: 'right' }),
+      S('Kanon langsam spielen und die Grundtöne summen.', 'kanon', { hand: 'right', tempo: 60 })]],
+    ['Kanon beidhändig', [
+      A('Blattspiel beide Schlüssel.', 'blatt-beide'),
+      L('Pachelbels Kanon (um 1680): diese 8 Akkorde finden sich in vielen Popsongs wieder. Einmal zuhören.', 'kanon', { mode: 'listen' }),
+      U('Kanon beidhändig im Warten-Modus. Ziel ≥ 90 %.', 'kanon'),
+      S('Kanon spielen, eine eigene Melodie dazu summen – improvisieren erlaubt!', 'kanon')]],
+  ]),
+  W(8, 2, 'Begleitmuster & Amazing Grace', 'Amazing Grace: nur linke Hand spielen und Melodie singen', [
+    ['Gebrochene Akkorde', [
+      A('Gebrochene Akkorde im Warten-Modus.', 'gebrochen'),
+      L('3/4-Takt: „1 – 2 – 3“, betont auf der 1 (Walzer-Gefühl). Amazing Grace beginnt mit einem Auftakt auf Schlag 3.', 'amazing', { mode: 'listen' }),
+      U('Amazing Grace rechte Hand: Warten-Modus. Daumen startet auf G3, unter dem mittleren C.', 'amazing'),
+      S('Amazing Grace spielen und singen.', 'amazing', { tempo: 70 })]],
+    ['Melodie im Fluss', [
+      A('Gebrochene Akkorde im Mitspielen-Modus.', 'gebrochen', { mode: 'play', tempo: 70 }),
+      L('Bindebögen auf einer Silbe (Melisma): „maz-ing“ singst du über zwei Töne. Achtelnoten = halber Schlag.'),
+      U('Amazing Grace rechts im Mitspielen-Modus bei 70 %.', 'amazing', { mode: 'play', tempo: 70 }),
+      S('Amazing Grace singen, App spielt die Begleitung.', 'amazing-lh', { hand: 'right' })]],
+    ['Singen & begleiten', [
+      A('Moll-Akkorde.', 'akkorde-moll', { mode: 'play' }),
+      L('Der Rollenwechsel: Jetzt singst du die Melodie und das Klavier begleitet nur. Schalte „Begleitung der anderen Hand“ aus, damit nur deine Stimme die Melodie trägt.'),
+      U('Amazing Grace beidhändig, erst links allein, dann beide.', 'amazing-lh', { hand: 'left' }),
+      S('Monatsziel: nur linke Hand spielen, Melodie singen.', 'amazing-lh', { hand: 'left', tempo: 70 })]],
+  ]),
+  W(9, 3, 'Pop-Pattern I–V–vi–IV', 'Ballade-Muster flüssig im Mitspielen-Modus ⭐⭐', [
+    ['Die Pop-Akkordfolge', [
+      A('Moll-Akkorde.', 'akkorde-moll'),
+      L('C – G – Am – F (Stufen I – V – vi – IV) ist die Akkordfolge hunderter Popsongs. Wer sie beherrscht, kann sofort viele Lieder begleiten.', 'pop-1', { mode: 'listen' }),
+      U('Pop-Pattern in ganzen Noten: Warten-Modus, dann Mitspielen.', 'pop-1'),
+      S('Spiele das Pattern und singe einen Popsong, den du kennst, in C-Dur dazu.', 'pop-1', { mode: 'play', tempo: 60 })]],
+    ['Rhythmus', [
+      A('Pop-Pattern ganze Noten im Mitspielen-Modus.', 'pop-1', { mode: 'play' }),
+      L('Groove entsteht durch gleichmäßige Anschläge. Rechts vier Viertel pro Takt, links nur auf der 1. Achte auf das Timing-Feedback.'),
+      U('Pop-Pattern im Viertel-Rhythmus: Mitspielen bei 70 %.', 'pop-2', { mode: 'play', tempo: 70 }),
+      S('Viertel-Rhythmus spielen und dazu singen.', 'pop-2', { mode: 'play', tempo: 70 })]],
+    ['Ballade', [
+      A('Gebrochene Akkorde.', 'gebrochen', { mode: 'play' }),
+      L('Ballade-Muster: links Grundton – rechts Akkord – links Quinte – rechts Akkord. Klingt voll, lässt aber Platz für die Stimme.'),
+      U('Ballade im Warten-Modus, dann Mitspielen. Ziel ⭐⭐', 'pop-ballade'),
+      S('Ballade spielen und deinen Lieblingssong dazu singen.', 'pop-ballade', { mode: 'play', tempo: 70 })]],
+  ]),
+  W(10, 3, 'Lead Sheets spielen', 'Twinkle aus dem Lead Sheet beidhändig ≥ 90 %', [
+    ['Was ist ein Lead Sheet?', [
+      A('Pop-Pattern Viertel.', 'pop-2', { mode: 'play' }),
+      L('Ein Lead Sheet zeigt nur Melodie und Akkordsymbole – so sehen die meisten Pop-Noten aus. Die linke Hand greift den Akkord, den das Symbol anzeigt.'),
+      U('Twinkle Lead Sheet: Warten-Modus. Notenname zeigen hilft am Anfang.', 'twinkle-lead'),
+      S('Nur linke Hand (Akkorde) spielen und Twinkle singen.', 'twinkle-lead', { hand: 'left' })]],
+    ['Akkordsymbole lesen', [
+      A('Moll-Akkorde.', 'akkorde-moll', { mode: 'play' }),
+      L('Großbuchstabe = Dur (C, F, G), mit „m“ = Moll (Am, Dm, Em). Übe, jedes Symbol in unter 2 Sekunden zu greifen.'),
+      U('When the Saints Lead Sheet beidhändig.', 'saints-lead'),
+      S('Saints: links Akkorde, Melodie singen.', 'saints-lead', { hand: 'left' })]],
+    ['Dein eigenes Lied', [
+      A('Blattspiel beide Schlüssel.', 'blatt-beide'),
+      L('Dein Lieblings-Popsong: Suche die Akkorde (z. B. auf einer Akkord-Seite) und wähle eine Version in C-Dur oder mit C, F, G, Am, Dm, Em.'),
+      U('Spiele die Akkorde deines Songs im Ballade-Muster – zur Übung zuerst mit dem Pop-Pattern.', 'pop-ballade', { mode: 'play' }),
+      S('Deinen Song singen und begleiten.', 'pop-ballade', { mode: 'play', tempo: 70 })]],
+  ]),
+  W(11, 3, 'Transponieren & Für Elise', 'Lied in eigener Gesangslage singen; Für Elise im Warten-Modus ≥ 80 %', [
+    ['Deine Gesangslage', [
+      A('Fünftonlage, um +2 Halbtöne transponiert (D-Dur) – beachte die schwarzen Tasten.', 'fuenfton', { transpose: 2 }),
+      L('Transponieren = alles höher oder tiefer verschieben. Finde deinen tiefsten und höchsten angenehmen Ton. Probiere bei Amazing Grace −2 bis +3 Halbtöne, bis es bequem klingt.'),
+      U('Amazing Grace beidhändig in deiner Tonart (Transponieren-Regler).', 'amazing-lh'),
+      S('Amazing Grace in deiner Lage: links spielen, singen.', 'amazing-lh', { hand: 'left' })]],
+    ['Für Elise', [
+      A('Blattspiel C4 bis C5.', 'blatt-oktave'),
+      L('a-Moll und das Kreuz: D♯ ist die schwarze Taste zwischen D und E. Für Elise erst anhören.', 'elise', { mode: 'listen' }),
+      U('Für Elise rechte Hand im Warten-Modus, Stück für Stück.', 'elise', { hand: 'right' }),
+      S('Amazing Grace oder Saints in deiner Lage singen.', 'saints-lead', { hand: 'left' })]],
+    ['Pedal & Ausdruck', [
+      A('Für Elise rechts.', 'elise', { hand: 'right' }),
+      L('Haltepedal am E-Piano: Bei Für Elise nach jedem Basston kurz drücken, beim nächsten Basston wechseln. Klingt sofort weicher.'),
+      U('Für Elise beidhändig: Warten-Modus, dann Mitspielen bei 60 %.', 'elise', { mode: 'play', tempo: 60 }),
+      S('Dein Lieblingslied transponiert spielen und singen.', 'twinkle-lead')]],
+  ]),
+  W(12, 3, 'Abschluss-Stück', 'Ein Lied komplett spielen und singen ⭐⭐⭐', [
+    ['Stück wählen', [
+      A('Ballade-Muster.', 'pop-ballade', { mode: 'play' }),
+      L('Wähle dein Abschluss-Stück: Amazing Grace beidhändig oder dein eigener Popsong. Lege Tonart und Tempo fest.'),
+      U('Amazing Grace beidhändig im Warten-Modus, schwierige Stellen gezielt üben.', 'amazing-lh'),
+      S('Abschluss-Stück spielen und singen.', 'amazing-lh', { hand: 'left' })]],
+    ['Vorspiel-Training', [
+      A('Für Elise.', 'elise', { mode: 'play', tempo: 70 }),
+      L('Auftritts-Tipps: Fehler überspielen, Puls halten, Anfang und Schluss besonders sicher üben. Atme vor dem Einsatz.'),
+      U('Abschluss-Stück im Mitspielen-Modus bei 80 %.', 'amazing-lh', { mode: 'play', tempo: 80 }),
+      S('Komplett singen und spielen – mit dem Handy aufnehmen und anhören.', 'amazing-lh', { mode: 'play', tempo: 80 })]],
+    ['Dein Konzert', [
+      A('Lieblingsübung aus 12 Wochen.', 'kanon'),
+      L('Rückblick: Schau dir deine Bestwerte an. Vergleiche mit Woche 1 – was du heute kannst!'),
+      U('Abschluss: Mitspielen bei 100 %, Ziel ⭐⭐⭐.', 'amazing-lh', { mode: 'play' }),
+      S('Dein Konzert: alle Lieblingsstücke spielen und singen. Herzlichen Glückwunsch!', 'saints-lead', { hand: 'left' })]],
+  ]),
 ];

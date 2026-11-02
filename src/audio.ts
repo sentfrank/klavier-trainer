@@ -11,6 +11,7 @@ export function playNote(midi: number, seconds = 0.6, velocity = 0.8) {
     return;
   }
   ctx ??= new AudioContext();
+  if (ctx.state === 'suspended') ctx.resume();
   const t = ctx.currentTime;
   const g = ctx.createGain();
   g.gain.setValueAtTime(0, t);
@@ -24,4 +25,13 @@ export function playNote(midi: number, seconds = 0.6, velocity = 0.8) {
     const hg = ctx!.createGain(); hg.gain.value = [1, 0.3, 0.12][i];
     o.connect(hg).connect(g); o.start(t); o.stop(t + seconds + 1.2);
   });
+}
+
+export function playClick(accent = false) {
+  ctx ??= new AudioContext();
+  if (ctx.state === 'suspended') ctx.resume();
+  const t = ctx.currentTime, o = ctx.createOscillator(), g = ctx.createGain();
+  o.frequency.value = accent ? 1600 : 1000;
+  g.gain.setValueAtTime(accent ? 0.3 : 0.18, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
+  o.connect(g).connect(ctx.destination); o.start(t); o.stop(t + 0.06);
 }
