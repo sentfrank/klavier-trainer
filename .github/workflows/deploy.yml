@@ -40,6 +40,9 @@ jobs:
         run: |
           sudo apt-get install -y lftp >/dev/null
           lftp -u "$USER","$PASS" "sftp://$HOST" -e "set sftp:auto-confirm yes; mkdir -pf $TARGET; mirror -R --delete --verbose dist/ $TARGET/; bye"
+      - name: Ordner auf Strato anzeigen
+        if: env.USER != ''
+        run: lftp -u "$USER","$PASS" "sftp://$HOST" -e "set sftp:auto-confirm yes; echo '== Wurzel =='; cls -1; echo '== w-esel =='; cls -1 w-esel/; echo '== Ziel =='; cls -l $TARGET/; bye" || true
       - name: Hinweis
         if: env.USER == ''
         run: echo "::warning::STRATO_SFTP_USER / STRATO_SFTP_PASSWORD fehlen – Strato-Upload übersprungen."
