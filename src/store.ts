@@ -1,5 +1,5 @@
 const KEY = 'klavier-trainer-v1';
-type Data = { done: Record<string, boolean>; best: Record<string, number>; minutes: Record<string, number> };
+type Data = { done: Record<string, boolean>; best: Record<string, number>; minutes: Record<string, number>; level?: number };
 function load(): Data {
   try { return { done: {}, best: {}, minutes: {}, ...JSON.parse(localStorage.getItem(KEY) || '{}') }; }
   catch { return { done: {}, best: {}, minutes: {} }; }

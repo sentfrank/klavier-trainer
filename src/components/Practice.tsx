@@ -8,7 +8,7 @@ import { store } from '../store';
 
 export type Mode = 'wait' | 'play' | 'listen';
 export type Hand = 'both' | 'right' | 'left';
-export type PracticeOpts = { mode?: Mode; hand?: Hand; tempo?: number; transpose?: number };
+export type PracticeOpts = { mode?: Mode; hand?: Hand; tempo?: number; transpose?: number; hints?: boolean };
 type St = 'ok' | 'bad' | null;
 type Step = Note & { mine: number[]; other: number[]; start: number };
 const TOL = 0.45;
@@ -26,7 +26,7 @@ export function Practice({ song, opts = {}, onBack }: { song: Song; opts?: Pract
   const [transpose, setTranspose] = useState(opts.transpose ?? 0);
   const [accomp, setAccomp] = useState(true);
   const [metro, setMetro] = useState(true);
-  const [showHint, setShowHint] = useState(true);
+  const [showHint, setShowHint] = useState(opts.hints ?? true);
   const [i, setI] = useState(0);
   const [status, setStatus] = useState<St[]>([]);
   const [errors, setErrors] = useState(0);

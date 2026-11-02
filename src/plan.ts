@@ -1,6 +1,7 @@
 import type { Mode, Hand } from './components/Practice';
+import { songById } from './songs';
 export type Kind = 'Aufwärmen' | 'Lernen' | 'Üben' | 'Singen';
-export type Block = { kind: Kind; min: number; text: string; song?: string; mode?: Mode; hand?: Hand; tempo?: number; transpose?: number };
+export type Block = { kind: Kind; min: number; text: string; song?: string; mode?: Mode; hand?: Hand; tempo?: number; transpose?: number; hints?: boolean };
 export type Session = { id: string; title: string; blocks: Block[] };
 export type Week = { n: number; month: number; title: string; goal: string; sessions: Session[] };
 
@@ -12,9 +13,7 @@ const S = (text: string, song?: string, o: O = {}): Block => ({ kind: 'Singen', 
 const W = (n: number, month: number, title: string, goal: string, s: [string, Block[]][]): Week =>
   ({ n, month, title, goal, sessions: s.map(([t, b], k) => ({ id: `w${n}s${k + 1}`, title: `Einheit ${k + 1} – ${t}`, blocks: b })) });
 
-export const MONTHS = ['Grundlagen', 'Beide Hände', 'Liedbegleitung'];
-
-export const WEEKS: Week[] = [
+const STAGES: Week[] = [
   W(1, 1, 'Orientierung & Fünftonlage C', 'Ode an die Freude im Warten-Modus mit ≥ 90 %', [
     ['Die Tastatur', [
       A('Finger nummerieren (Daumen = 1). Alle C auf dem E-Piano finden – C liegt links vor den zwei schwarzen Tasten.'),
@@ -219,4 +218,117 @@ export const WEEKS: Week[] = [
       U('Abschluss: Mitspielen bei 100 %, Ziel ⭐⭐⭐.', 'amazing-lh', { mode: 'play' }),
       S('Dein Konzert: alle Lieblingsstücke spielen und singen. Herzlichen Glückwunsch!', 'saints-lead', { hand: 'left' })]],
   ]),
+  W(13, 3, 'Achtel & Synkopen', 'Synkopen-Pattern im Mitspielen-Modus ⭐⭐', [
+    ['Achtelnoten', [
+      A('Achtel-Fünftonlage, erst rechts, dann beidhändig.', 'achtel'),
+      L('Achtel = halber Schlag. Laut zählen: „1 und 2 und 3 und 4 und“. Der Fuß tippt nur auf die Zahlen.'),
+      U('Achtel-Übung im Mitspielen-Modus: 60 % → 80 % → 100 %.', 'achtel', { mode: 'play', tempo: 60 }),
+      S('Pop-Pattern spielen und einen Popsong dazu singen.', 'pop-2', { mode: 'play', tempo: 70 })]],
+    ['Die Synkope', [
+      A('Pop-Pattern Viertel.', 'pop-2', { mode: 'play' }),
+      L('Synkope = Betonung zwischen den Schlägen. Das Muster 3+3+2 (Achtel) ist der Herzschlag vieler Popsongs. Erst klatschen, dann zuhören.', 'pop-synkope', { mode: 'listen' }),
+      U('Synkopen-Pattern im Warten-Modus, dann Mitspielen bei 70 %.', 'pop-synkope', { mode: 'play', tempo: 70 }),
+      S('Synkopen-Pattern spielen und singen – der Gesang bleibt entspannt, das Klavier groovt.', 'pop-synkope', { mode: 'play', tempo: 70 })]],
+    ['Groove festigen', [
+      A('Achtel beidhändig.', 'achtel', { mode: 'play' }),
+      L('Timing-Feedback auswerten: Bist du eher zu früh? Dann bewusst „hinten“ spielen und dem Metronom folgen.'),
+      U('Synkopen-Pattern bei 100 %. Ziel ⭐⭐', 'pop-synkope', { mode: 'play' }),
+      S('Eigener Song im Synkopen-Groove.', 'pop-synkope', { mode: 'play', tempo: 80 })]],
+  ]),
+  W(14, 3, 'Neue Tonart: G-Dur', 'Ode in G-Dur beidhändig ≥ 90 %', [
+    ['G-Lage', [
+      A('Fünftonlage C zur Erinnerung.', 'fuenfton', { mode: 'play' }),
+      L('G-Dur hat ein Vorzeichen: F♯. Die Akkorde heißen jetzt G – C – D (Stufen I – IV – V), genau wie C – F – G in C-Dur.'),
+      U('G-Dur-Lage und Akkorde im Warten-Modus.', 'g-dur'),
+      S('G-Akkorde spielen und den Grundton singen.', 'g-dur', { hand: 'left' })]],
+    ['Transponieren in der Praxis', [
+      A('G-Dur im Mitspielen-Modus.', 'g-dur', { mode: 'play', tempo: 70 }),
+      L('Ode an die Freude in G-Dur: Der Transponieren-Regler steht auf −5. Die Fingersätze bleiben gleich – nur die Lage wandert.'),
+      U('Ode beidhändig in G-Dur.', 'ode-lh', { transpose: -5 }),
+      S('Ode in G-Dur singen – passt diese Lage besser zu deiner Stimme?', 'ode-lh', { transpose: -5, hand: 'right' })]],
+    ['Tonart wählen', [
+      A('Blattspiel beide Schlüssel.', 'blatt-beide'),
+      L('Wähle für jedes Lied die Tonart, in der du am besten singst. Merke dir den Transponier-Wert.'),
+      U('Amazing Grace in deiner Tonart beidhändig im Mitspielen-Modus.', 'amazing-lh', { mode: 'play', tempo: 80 }),
+      S('Amazing Grace: links spielen, singen.', 'amazing-lh', { hand: 'left' })]],
+  ]),
+  W(15, 3, 'Arpeggio-Begleitung', 'Arpeggio flüssig im Mitspielen-Modus ⭐⭐', [
+    ['Die Hand öffnen', [
+      A('Gebrochene Akkorde.', 'gebrochen', { mode: 'play' }),
+      L('Arpeggio über eine Oktave: Grundton (5) – Quinte (2) – Oktave (1) – Quinte (2). Die Hand spannt sich wie ein Fächer.', 'arpeggio', { mode: 'listen' }),
+      U('Arpeggio im Warten-Modus, Takt für Takt.', 'arpeggio'),
+      S('Langsam arpeggieren und eine ruhige Melodie summen.', 'arpeggio', { mode: 'play', tempo: 50 })]],
+    ['Fließen lassen', [
+      A('Achtel-Übung.', 'achtel', { mode: 'play' }),
+      L('Haltepedal: bei jedem Akkordwechsel treten, kurz lösen, wieder treten („Pedal nach dem Anschlag“). So verschwimmt nichts.'),
+      U('Arpeggio im Mitspielen-Modus bei 70 % mit Pedal.', 'arpeggio', { mode: 'play', tempo: 70 }),
+      S('Arpeggio spielen und einen Popsong in C singen.', 'arpeggio', { mode: 'play', tempo: 70 })]],
+    ['Ballade gestalten', [
+      A('Ballade-Muster.', 'pop-ballade', { mode: 'play' }),
+      L('Strophe ruhig (Arpeggio), Refrain kräftiger (Synkopen-Pattern): so entsteht ein Arrangement.'),
+      U('Abwechselnd 2× Arpeggio, 2× Synkope – deine erste eigene Begleitung.', 'arpeggio', { mode: 'play', tempo: 80 }),
+      S('Dein Song: Strophe mit Arpeggio, Refrain mit Synkope.', 'pop-synkope', { mode: 'play', tempo: 80 })]],
+  ]),
+  W(16, 3, 'Improvisation & eigene Begleitung', 'Eigenes Lied mit selbst gewähltem Begleitmuster', [
+    ['Improvisieren', [
+      A('Kanon-Akkordfolge.', 'kanon', { mode: 'play' }),
+      L('Über C – G – Am – F passt jeder Ton der C-Dur-Tonleiter (nur weiße Tasten). Spiel links die Akkorde und erfinde rechts eine Melodie.'),
+      U('Kanon: App spielt die rechte Hand, du improvisierst mit den Grundtönen links.', 'kanon', { hand: 'left', mode: 'play', tempo: 70 }),
+      S('Eine eigene Melodie zur Kanon-Folge singen.', 'kanon', { mode: 'listen' })]],
+    ['Für Elise beidhändig', [
+      A('Arpeggio.', 'arpeggio', { mode: 'play' }),
+      L('Für Elise mit Pedal und Dynamik: leise beginnen, beim Bass-Ton Pedal wechseln.'),
+      U('Für Elise beidhändig im Mitspielen-Modus bei 80 %.', 'elise', { mode: 'play', tempo: 80 }),
+      S('Lieblingslied in deiner Tonart.', 'amazing-lh', { hand: 'left' })]],
+    ['Arrangement', [
+      A('Synkopen-Pattern.', 'pop-synkope', { mode: 'play' }),
+      L('Wähle für dein Abschluss-Lied: Tonart, Begleitmuster für Strophe und Refrain, Tempo.'),
+      U('Dein Arrangement üben – Lead Sheet als Vorlage.', 'saints-lead', { mode: 'play', tempo: 90 }),
+      S('Komplettes Lied spielen und singen.', 'saints-lead', { hand: 'left' })]],
+  ]),
 ];
+
+export const LEVELS = [
+  { n: 1, name: 'Einsteiger', desc: 'Noch nie oder kaum gespielt' },
+  { n: 2, name: 'Grundkenntnisse', desc: 'Einfache Melodien, etwas beidhändig' },
+  { n: 3, name: 'Fortgeschrittener Anfänger', desc: 'Beidhändig mit Akkorden, beide Notenschlüssel' },
+  { n: 4, name: 'Mittelstufe', desc: 'Lieder begleiten, mehr Tempo & Sicherheit' },
+  { n: 5, name: 'Fortgeschritten', desc: 'Sicher vom Blatt, Repertoire & Ausdruck' },
+];
+const ORDER: Record<number, number[]> = {
+  1: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+  2: [3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 12],
+  3: [5, 6, 7, 8, 9, 10, 11, 13, 14, 15, 16, 12],
+  4: [5, 6, 7, 8, 9, 10, 11, 13, 14, 15, 16, 12],
+  5: [5, 6, 7, 8, 9, 10, 11, 13, 14, 15, 16, 12],
+};
+export const MONTH_NAMES: Record<number, string[]> = {
+  1: ['Grundlagen', 'Beide Hände', 'Liedbegleitung'],
+  2: ['Akkorde & beide Hände', 'Moll, Begleitmuster & Pop', 'Lead Sheets, Groove & Tonarten'],
+  3: ['Beide Hände & Moll', 'Begleitmuster & Pop', 'Groove, Tonarten & Arrangement'],
+  4: ['Beide Hände & Moll – intensiv', 'Begleitmuster & Pop – intensiv', 'Groove & Arrangement – intensiv'],
+  5: ['Beide Hände & Moll – Profi', 'Begleitmuster & Pop – Profi', 'Groove & Arrangement – Profi'],
+};
+const TEMPO = [0.85, 1, 1, 1.1, 1.2];
+const NOTE = ['', '', '', ' · Level 4: immer beidhändig im Mitspielen-Modus, Tempo +10 %', ' · Level 5: beidhändig, Mitspielen, ohne Notennamen, Tempo +20 %'];
+
+function adapt(b: Block, level: number): Block {
+  const o = { ...b };
+  if (!b.song || b.mode === 'listen') return o;
+  const song = songById(b.song);
+  const both = !!song && song.notes.some(n => n.lh.length) && song.notes.some(n => n.rh.length);
+  if (level >= 4 && b.kind !== 'Singen' && both && b.hand && b.hand !== 'both') o.hand = 'both';
+  if (level >= 4 && b.kind !== 'Lernen' && (b.mode ?? 'wait') === 'wait' && !song?.gen) o.mode = 'play';
+  if (level === 5) o.hints = false;
+  if (o.mode === 'play') o.tempo = Math.max(40, Math.min(120, Math.round((b.tempo ?? 100) * TEMPO[level - 1] / 5) * 5));
+  return o;
+}
+
+export function planFor(level: number): Week[] {
+  return ORDER[level].map((stage, i) => {
+    const w = STAGES.find(x => x.n === stage)!;
+    return { ...w, n: i + 1, month: Math.floor(i / 4) + 1, goal: w.goal + NOTE[level - 1],
+      sessions: w.sessions.map(s => ({ ...s, blocks: s.blocks.map(b => adapt(b, level)) })) };
+  });
+}
+

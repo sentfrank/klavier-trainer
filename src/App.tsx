@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { SONGS, songById, type Song } from './songs';
-import { WEEKS, MONTHS, type Session, type Block } from './plan';
+import { planFor, LEVELS, MONTH_NAMES, type Session, type Block } from './plan';
 import { Practice, starsFor, type PracticeOpts } from './components/Practice';
 import { initMidi, midiSupported, getAccess, emit, onMidi } from './midi';
 import { setMidiOut, playNote } from './audio';
@@ -8,7 +8,7 @@ import { store } from './store';
 import { noteName } from './components/Keyboard';
 
 const KEYMAP: Record<string, number> = { a: 60, w: 61, s: 62, e: 63, d: 64, f: 65, t: 66, g: 67, y: 68, z: 68, h: 69, u: 70, j: 71, k: 72 };
-const optsOf = (b: Block): PracticeOpts => ({ mode: b.mode, hand: b.hand, tempo: b.tempo, transpose: b.transpose });
+const optsOf = (b: Block): PracticeOpts => ({ mode: b.mode, hand: b.hand, tempo: b.tempo, transpose: b.transpose, hints: b.hints });
 const label = (b: Block) => [({ wait: 'Warten', play: 'Mitspielen', listen: 'Zuhören' } as const)[b.mode ?? 'wait'],
   b.hand && b.hand !== 'both' ? (b.hand === 'right' ? 'rechte Hand' : 'linke Hand') : '', b.tempo ? `${b.tempo} %` : '',
   b.transpose ? `${b.transpose > 0 ? '+' : ''}${b.transpose} HT` : ''].filter(Boolean).join(', ');
@@ -41,6 +41,9 @@ export default function App() {
 
   const toggleDone = (id: string) => setData(store.update(d => { d.done[id] = !d.done[id]; }));
   const connected = devices.ins.length > 0;
+  const level = data.level;
+  const WEEKS = planFor(level ?? 1);
+  const setLevel = (n: number) => setData(store.update(d => { d.level = n; }));
   const allSessions = WEEKS.flatMap(w => w.sessions);
   const doneCount = allSessions.filter(x => data.done[x.id]).length;
   const nextSession = allSessions.find(x => !data.done[x.id]);
@@ -101,22 +104,37 @@ export default function App() {
             </button>
           </section>); })()}
 
-        {view.kind === 'home' && <>
+        {view.kind === 'home' && !level && (
+          <section className="card">
+            <h2>Willkommen! Wo stehst du?</h2>
+            <p className="muted">Dein 12-Wochen-Plan passt sich an dein Level an. Du kannst es jederzeit ändern.</p>
+            <div className="levels">
+              {LEVELS.map(l => <button key={l.n} className="level" onClick={() => setLevel(l.n)}><strong>Level {l.n} · {l.name}</strong><span>{l.desc}</span></button>)}
+            </div>
+          </section>
+        )}
+        {view.kind === 'home' && level && <>
           <section className="card hero">
             <div>
               <h2>Weiter üben</h2>
               <p className="muted">{doneCount} von {allSessions.length} Einheiten · {doneCount} h von {allSessions.length} h</p>
               <div className="bar"><span style={{ width: `${doneCount / allSessions.length * 100}%` }} /></div>
             </div>
-            {nextSession ? <button onClick={() => setView({ kind: 'session', s: nextSession })}>▶ {nextSession.title.replace(/^Einheit \d – /, '')} (Woche {nextSession.id.match(/w(\d+)/)![1]})</button> : <strong>🎉 Plan abgeschlossen!</strong>}
+            <label className="levelsel">Level
+              <select value={level} onChange={e => setLevel(+e.target.value)}>
+                {LEVELS.map(l => <option key={l.n} value={l.n}>{l.n} · {l.name}</option>)}
+              </select>
+            </label>
+            {nextSession ? <button onClick={() => setView({ kind: 'session', s: nextSession })}>▶ {nextSession.title.replace(/^Einheit \d – /, '')} (Woche {WEEKS.find(w => w.sessions.includes(nextSession))!.n})</button> : <strong>🎉 Plan abgeschlossen!</strong>}
           </section>
 
+          <div className="home-grid"><div>
           <section className="card">
             <h2>Dein 12-Wochen-Plan</h2>
             <p className="muted">3 Einheiten × 60 Minuten pro Woche</p>
             {[1, 2, 3].map(mo => (
               <div key={mo}>
-                <h3>Monat {mo} – {MONTHS[mo - 1]}</h3>
+                <h3>Monat {mo} – {MONTH_NAMES[level ?? 1][mo - 1]}</h3>
                 {WEEKS.filter(w => w.month === mo).map(w => {
                   const d = w.sessions.filter(x => data.done[x.id]).length;
                   return (
@@ -135,6 +153,7 @@ export default function App() {
             ))}
           </section>
 
+          </div><div>
           {([['lied', 'Lieder'], ['uebung', 'Übungen & Akkorde'], ['blatt', 'Blattspiel-Training']] as const).map(([cat, t]) => (
             <section className="card" key={cat}>
               <h2>{t}</h2>
@@ -151,6 +170,7 @@ export default function App() {
               </div>
             </section>
           ))}
+          </div></div>
         </>}
       </main>
     </div>

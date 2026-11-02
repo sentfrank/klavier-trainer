@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import type { Note } from '../songs';
 type St = 'ok' | 'bad' | null | undefined;
 const STEP = [0, 0, 1, 1, 2, 3, 3, 4, 4, 5, 5, 6];
@@ -26,7 +27,10 @@ function Voice({ keys, top, ref0, cx, beats }: { keys: number[]; top: number; re
 }
 
 export function Staff({ notes, index, status, lead }: { notes: Note[]; index: number; status: St[]; lead?: boolean }) {
-  const per = 8, W = 680, tT = 60, tB = tT + 4 * g + 70, H = tB + 4 * g + 36, x0 = 80, dx = (W - x0 - 14) / per;
+  const [vw, setVw] = useState(window.innerWidth);
+  useEffect(() => { const f = () => setVw(window.innerWidth); window.addEventListener('resize', f); return () => window.removeEventListener('resize', f); }, []);
+  const per = vw >= 1100 ? 12 : vw >= 760 ? 10 : 7;
+  const W = 94 + per * 74, tT = 60, tB = tT + 4 * g + 70, H = tB + 4 * g + 36, x0 = 80, dx = (W - x0 - 14) / per;
   const start = Math.max(0, Math.min(Math.max(index, 0) - 2, notes.length - per));
   const view = notes.slice(start, start + per);
   return (

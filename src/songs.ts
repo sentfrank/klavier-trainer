@@ -1,3 +1,4 @@
+import { store } from './store';
 export type Note = { rh: number[]; lh: number[]; beats: number; lyric?: string; finger?: number; chord?: string };
 export type Cat = 'lied' | 'uebung' | 'blatt';
 export type Song = {
@@ -62,9 +63,11 @@ const ENTCHEN = mk('C4 D4 E4 F4 G4:2 G4:2 A4 A4 A4 A4 G4:4 A4 A4 A4 A4 G4:4 F4 F
   'Al- le mei- ne Ent- chen schwim- men auf dem See, schwim- men auf dem See, Köpf- chen in das Was- ser, Schwänz- chen in die Höh.', { fingers: true });
 
 // Blattspiel-Generator (Piano-Marvel-Prinzip: immer neue, unbekannte Noten)
-function drill(rhPool: string, lhPool: string, n = 12) {
+const DRILL_LEN = [10, 12, 16, 20, 24];
+function drill(rhPool: string, lhPool: string) {
   const R = keys(rhPool), L = keys(lhPool);
   return () => {
+    const n = DRILL_LEN[(store.get().level ?? 1) - 1] ?? 12;
     const out: Note[] = []; let ir = Math.floor(R.length / 2), il = Math.floor(L.length / 2);
     for (let k = 0; k < n; k++) {
       const useL = !R.length || (L.length > 0 && Math.random() < 0.5);
@@ -106,6 +109,14 @@ export const SONGS: Song[] = [
   { id: 'pop-1', cat: 'uebung', title: 'Pop-Pattern I–V–vi–IV', level: 3, tempo: 70, info: 'C – G – Am – F: die berühmteste Akkordfolge der Popmusik. Rechts Dreiklang, links Grundton, ganze Noten.', notes: mk(prog(POP, (c, n) => `{${n}}${c.rh}/${c.lh}:4`)) },
   { id: 'pop-2', cat: 'uebung', title: 'Pop-Pattern – Viertel-Rhythmus', level: 4, tempo: 80, info: 'Rechte Hand schlägt den Akkord auf jedem Schlag an, links nur auf Schlag 1. Gleichmäßig wie ein Uhrwerk.', notes: mk(prog(POP, (c, n) => `{${n}}${c.rh}/${c.lh} ${c.rh} ${c.rh} ${c.rh}`)) },
   { id: 'pop-ballade', cat: 'uebung', title: 'Ballade: Bass – Akkord', level: 4, tempo: 80, info: 'Links Grundton, rechts Akkord, links Quinte, rechts Akkord. Das klassische Begleitmuster für Lieder.', notes: mk(prog(POP, (c, n) => `{${n}}/${c.lh} ${c.rh} /${c.fifth} ${c.rh}`)) },
+
+  // Aufbau-Stufen (Level 2–5)
+  { id: 'achtel', cat: 'uebung', title: 'Achtelnoten – Fünftonlage', level: 3, tempo: 70, info: 'Zwei Töne pro Schlag. Zähle „1 und 2 und …“.', notes: mk('C4:0.5 D4:0.5 E4:0.5 F4:0.5 G4:0.5 F4:0.5 E4:0.5 D4:0.5 C4/C3:0.5 D4/D3:0.5 E4/E3:0.5 F4/F3:0.5 G4/G3:0.5 F4/F3:0.5 E4/E3:0.5 D4/D3:0.5 C4/C3:2', '', { fingers: true }) },
+  { id: 'pop-synkope', cat: 'uebung', title: 'Pop-Pattern – Synkope (3+3+2)', level: 4, tempo: 80, info: 'Der typische Pop-Groove: Akkord auf 1, auf „2 und“ und auf 4. Klingt sofort nach Radio.', notes: mk(prog(POP, (c, n) => `{${n}}${c.rh}/${c.lh}:1.5 ${c.rh}:1.5 ${c.rh}:1`)) },
+  { id: 'g-dur', cat: 'uebung', title: 'G-Dur: Fünftonlage & Akkorde', level: 3, tempo: 70, info: 'Neue Lage: rechter Daumen auf G4. Akkorde links: G = H-D-G, C = C-E-G, D = A-D-F♯ (F♯ = schwarze Taste).',
+    notes: mk('G4/G3 A4 B4 C5 D5 C5 B4 A4 G4:2 {G}G4/B2+D3+G3:4 {C}G4/C3+E3+G3:4 {D}F#4/A2+D3+F#3:4 {G}G4/B2+D3+G3:4') },
+  { id: 'arpeggio', cat: 'uebung', title: 'Arpeggio-Begleitung (links)', level: 4, tempo: 70, info: 'Grundton – Quinte – Oktave – Quinte in Achteln. Die linke Hand öffnet sich weit; Handgelenk locker kreisen lassen.',
+    notes: mk(['C:C3 G3 C4 G3', 'G:G2 D3 G3 D3', 'Am:A2 E3 A3 E3', 'F:F2 C3 F3 C3'].concat(['C:C3 G3 C4 G3', 'G:G2 D3 G3 D3', 'Am:A2 E3 A3 E3', 'F:F2 C3 F3 C3']).map(x => { const [c, t] = x.split(':'); const k = t.split(' '); return `{${c}}/${k[0]}:0.5 /${k[1]}:0.5 /${k[2]}:0.5 /${k[1]}:0.5 /${k[0]}:0.5 /${k[1]}:0.5 /${k[2]}:0.5 /${k[1]}:0.5`; }).join(' ') + ' {C}/C3+G3+C4:4') },
 
   // Blattspiel
   { id: 'blatt-c5', cat: 'blatt', title: 'Blattspiel: C bis G (rechts)', level: 1, tempo: 70, info: 'Jedes Mal neue Noten. Erst lesen, dann spielen – nicht auf die Tasten schauen!', notes: [], gen: drill('C4+D4+E4+F4+G4', '') },

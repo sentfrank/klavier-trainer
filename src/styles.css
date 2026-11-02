@@ -43,3 +43,28 @@ button.mini{min-height:32px;padding:2px 10px;margin:0 6px}
 .bar{height:8px;background:var(--bg);border-radius:99px;overflow:hidden}.bar span{display:block;height:100%;background:var(--accent)}
 .badge.full{background:var(--ok);color:#fff}
 .kind{font-weight:700;color:var(--accent);min-width:92px;font-size:.9rem}.kind small{font-weight:400;color:var(--muted)}
+.app{max-width:1280px}
+.levels{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-top:12px}
+.level{display:flex;flex-direction:column;align-items:flex-start;text-align:left;background:transparent;color:var(--ink);border-color:var(--line);gap:4px}
+.level span{color:var(--muted);font-size:.9rem}.level:hover{border-color:var(--accent)}
+.levelsel{display:flex;align-items:center;gap:6px;font-weight:600}
+.home-grid{display:block}
+.keyboard{height:clamp(110px,22vh,210px)}
+.staff{max-height:42vh}
+/* Tablet quer (iPad landscape) & große Bildschirme */
+@media (orientation:landscape) and (min-width:900px){
+  .home-grid{display:grid;grid-template-columns:3fr 2fr;gap:16px;align-items:start}
+  .home-grid>div>.card{margin-bottom:16px}
+  .practice{display:flex;flex-direction:column;min-height:calc(100vh - 90px)}
+  .practice .staff{flex:1;min-height:0;max-height:46vh}
+  .practice .keyboard{margin-top:auto}
+}
+@media (orientation:landscape) and (max-height:850px){
+  .app{padding:8px 16px}header{margin-bottom:8px}h1{font-size:1.15rem}
+  .practice{padding:10px 14px;min-height:calc(100vh - 66px)}
+  .practice h2{font-size:1.15rem;margin:0}.practice>p.muted{margin:2px 0;font-size:.85rem}
+  .controls{margin:4px 0}.status{margin:4px 0}.practice>p.small{display:none}
+  .keyboard{height:clamp(100px,24vh,190px);margin:6px 0}
+  .result{padding:4px}.stars{font-size:1.8rem}
+}
+@media (max-width:600px){.hero button{width:100%}}
